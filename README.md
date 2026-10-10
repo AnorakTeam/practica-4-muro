@@ -86,9 +86,17 @@ A continuación, el resultado de ejecutar los pasos de la fase 4 hasta lanzar la
 
 ## Fase 5. El estado vive afuera
 
+Se ejecutaron en las dos pestañas los comandos para poner presión a la uri del backend, y se obtuvieron estos resultados:
 
+![resultados de hey](evidence/fase5-hey.png)
+
+Y las métricas desde el dashboard de gcp para el backend:
+
+![graficas con el recuento de instancias en ese momento de test](evidence/fase5-gcp-metrics.png)
 
 ## Fase 6. Reto
+
+
 
 ### Decisiones
 
