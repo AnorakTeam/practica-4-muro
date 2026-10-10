@@ -80,9 +80,13 @@ Y los registros se crearon exitosamente:
 
 ## Fase 4. El frontend, conectado
 
+A continuación, el resultado de ejecutar los pasos de la fase 4 hasta lanzar la app y obtener la uri con la cual se compartió y se accedió al recurso del frontend:
 
+![screenshot desde el cel con unos mensajes mios y de alguien más](evidence/fase4-mobile.png)
 
 ## Fase 5. El estado vive afuera
+
+
 
 ## Fase 6. Reto
 
