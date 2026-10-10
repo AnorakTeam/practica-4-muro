@@ -54,7 +54,19 @@ Y el backend reconstruido luego de cambiar una palabra del comentario:
 
 ## Fase 2. Los cimientos
 
+> NOTA IMPORTANTE: Dentro del entorno de cloud shell, por alguna razón, no permitía a Docker pushear las imágenes al artifact registry, así que se habilitó y utilizó el servicio de cloud build para subir esas imágenes.
 
+Las imágenes se subieron al registro luego de ser construidas:
+
+![lista de imagenes en el registry](evidence/fase2-images.png)
+
+Luego, se listó con gcloud directamente las bases de datos de firestore existentes:
+
+![la base de datos de firestore existente](evidence/fase2-firestore.png)
+
+Y por último, la cuenta del backend con los permisos de user para lectura y escritura en firestore:
+
+![la cuenta de uso asignada al backend](evidence/fase2-iam-role.png)
 
 ## Fase 3. El backend
 
