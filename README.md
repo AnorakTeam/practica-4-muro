@@ -70,7 +70,17 @@ Y por último, la cuenta del backend con los permisos de user para lectura y esc
 
 ## Fase 3. El backend
 
+Luego de la ejecución de los pasos para integrar el recurso de cloud run, e instanciar estos, se ejecutaron los comandos curl para crear las entradas:
+
+![dos entradas a firestore por curl](evidence/fase3-curl.png)
+
+Y los registros se crearon exitosamente:
+
+![firestore con la colección nueva y ambos registros](evidence/fase3-firestore.png)
+
 ## Fase 4. El frontend, conectado
+
+
 
 ## Fase 5. El estado vive afuera
 
