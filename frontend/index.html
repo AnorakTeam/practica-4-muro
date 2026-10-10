@@ -246,6 +246,10 @@ async function cargar() {
   }
   try {
     const respuesta = await fetch(API + "/mensajes");
+    if (!respuesta.ok) {
+      const errorMsg = await respuesta.text().catch(() => "");
+      throw new Error(`Error ${respuesta.status}: ${errorMsg.slice(0, 80) || respuesta.statusText}`);
+    }
     const datos = await respuesta.json();
     const lista = document.getElementById("lista");
     lista.innerHTML = "";
