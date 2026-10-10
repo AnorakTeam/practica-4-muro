@@ -44,11 +44,17 @@ environment = devshell
 
 ## Fase 1. Las imágenes
 
-
+Se muestra la página generada, sin poder comunicarse con el backend:
 
 ![evidencia de frontend sin poder comunicarse al backend](evidence/fase1-not-working.png)
 
+Y el backend reconstruido luego de cambiar una palabra del comentario:
+
+![evidencia de backend reconstruido](evidence/fase1-backend-rebuilt.png)
+
 ## Fase 2. Los cimientos
+
+
 
 ## Fase 3. El backend
 
