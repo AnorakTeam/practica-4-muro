@@ -46,6 +46,8 @@ environment = devshell
 
 
 
+![evidencia de frontend sin poder comunicarse al backend](evidence/fase1-not-working.png)
+
 ## Fase 2. Los cimientos
 
 ## Fase 3. El backend
