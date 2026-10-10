@@ -46,7 +46,7 @@
   }
   textarea { min-height: 4.5rem; resize: vertical; }
   input:focus, textarea:focus { outline: 2px solid var(--acento); border-color: transparent; }
-  button {
+  #enviar {
     width: 100%;
     font: inherit;
     font-weight: 600;
@@ -56,8 +56,9 @@
     background: var(--acento);
     color: #fff;
     cursor: pointer;
+    transition: opacity .15s ease;
   }
-  button:disabled { opacity: .6; cursor: default; }
+  #enviar:disabled { opacity: .6; cursor: default; }
   #estado { display: block; margin: 1rem .2rem .6rem; color: var(--suave); font-size: .85rem; }
   ul { list-style: none; padding: 0; margin: 0; }
   li {
@@ -78,8 +79,120 @@
     font-weight: 700;
     color: #fff;
   }
+  .contenido {
+    flex: 1;
+    min-width: 0;
+  }
   .autor { font-weight: 650; margin-bottom: .15rem; }
   .cuerpo { line-height: 1.4; overflow-wrap: anywhere; }
+
+  /* Reacciones */
+  .reacciones-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .35rem;
+    margin-top: .6rem;
+  }
+  .reaccion-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    background: #fbfaf9;
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    padding: .2rem .55rem;
+    font: inherit;
+    font-size: .85rem;
+    cursor: pointer;
+    transition: all .15s ease;
+    user-select: none;
+    width: auto;
+    color: var(--texto);
+    line-height: 1.2;
+  }
+  .reaccion-btn:hover {
+    background: #eeebe6;
+    border-color: #d1c9c0;
+    transform: translateY(-1px);
+  }
+  .reaccion-btn:active {
+    transform: scale(0.96);
+  }
+  .reaccion-btn .conteo {
+    font-size: .78rem;
+    color: var(--suave);
+    font-weight: 600;
+  }
+  .btn-agregar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px dashed var(--borde);
+    border-radius: 12px;
+    padding: .2rem .5rem;
+    font: inherit;
+    font-size: .85rem;
+    color: var(--suave);
+    cursor: pointer;
+    transition: all .15s ease;
+    width: auto;
+    line-height: 1.2;
+  }
+  .btn-agregar:hover {
+    border-color: var(--acento);
+    color: var(--acento);
+    background: #fff;
+  }
+  .emoji-input-box {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    background: #ffffff;
+    border: 1px solid var(--acento);
+    border-radius: 12px;
+    padding: .15rem .3rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  }
+  .input-teclado {
+    width: 3.8rem;
+    margin: 0;
+    padding: .2rem .35rem;
+    font-size: 1rem;
+    text-align: center;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    background: #fbfaf9;
+  }
+  .input-teclado:focus {
+    outline: none;
+    border-color: var(--acento);
+  }
+  .btn-accion-mini {
+    width: auto;
+    padding: .2rem .45rem;
+    font-size: .8rem;
+    font-weight: 600;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--acento);
+    color: #fff;
+    line-height: 1.2;
+  }
+  .btn-cancelar-mini {
+    width: auto;
+    padding: .2rem .45rem;
+    font-size: .8rem;
+    font-weight: 600;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #e5e0db;
+    color: var(--texto);
+    line-height: 1.2;
+  }
 </style>
 </head>
 <body>
@@ -108,7 +221,29 @@ function colorDe(nombre) {
   return COLORES[suma % COLORES.length];
 }
 
+async function enviarReaccion(id, emoji) {
+  if (!id || !emoji) return;
+  try {
+    const res = await fetch(`${API}/mensajes/${encodeURIComponent(id)}/reaccionar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ emoji })
+    });
+    if (res.ok) {
+      await cargar();
+    } else {
+      const err = await res.json().catch(() => ({}));
+      console.warn("No se pudo registrar la reacción:", err);
+    }
+  } catch (error) {
+    console.error("Error al enviar reacción:", error);
+  }
+}
+
 async function cargar() {
+  if (document.activeElement && document.activeElement.classList.contains("input-teclado")) {
+    return;
+  }
   try {
     const respuesta = await fetch(API + "/mensajes");
     const datos = await respuesta.json();
@@ -120,14 +255,98 @@ async function cargar() {
       inicial.className = "inicial";
       inicial.textContent = (m.autor[0] || "?").toUpperCase();
       inicial.style.background = colorDe(m.autor);
+
       const contenido = document.createElement("div");
+      contenido.className = "contenido";
+
       const autor = document.createElement("div");
       autor.className = "autor";
       autor.textContent = m.autor;
+
       const cuerpo = document.createElement("div");
       cuerpo.className = "cuerpo";
       cuerpo.textContent = m.texto;
-      contenido.append(autor, cuerpo);
+
+      // Contenedor de reacciones
+      const reaccionesWrap = document.createElement("div");
+      reaccionesWrap.className = "reacciones-wrap";
+
+      // Ordenar reacciones por cantidad descendente (los mayores primero)
+      const ordenadas = Object.entries(m.reacciones || {}).sort((a, b) => b[1] - a[1]);
+
+      for (const [emoji, conteo] of ordenadas) {
+        const btnReaccion = document.createElement("button");
+        btnReaccion.type = "button";
+        btnReaccion.className = "reaccion-btn";
+        btnReaccion.title = `Reaccionar con ${emoji} (${conteo})`;
+        btnReaccion.innerHTML = `<span>${emoji}</span> <span class="conteo">${conteo}</span>`;
+        btnReaccion.onclick = () => enviarReaccion(m.id, emoji);
+        reaccionesWrap.append(btnReaccion);
+      }
+
+      // Botón para agregar nueva reacción / abrir entrada de emoji desde teclado
+      const btnAgregar = document.createElement("button");
+      btnAgregar.type = "button";
+      btnAgregar.className = "btn-agregar";
+      btnAgregar.title = "Elige cualquier emoji desde tu teclado";
+      btnAgregar.textContent = "+ 😊";
+
+      btnAgregar.onclick = () => {
+        btnAgregar.style.display = "none";
+
+        const inputBox = document.createElement("div");
+        inputBox.className = "emoji-input-box";
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "input-teclado";
+        input.placeholder = "😊";
+        input.maxLength = 8;
+        input.title = "Escribe o pega cualquier emoji desde tu teclado";
+
+        const btnOk = document.createElement("button");
+        btnOk.type = "button";
+        btnOk.className = "btn-accion-mini";
+        btnOk.textContent = "✓";
+        btnOk.title = "Confirmar emoji";
+
+        const btnCancelar = document.createElement("button");
+        btnCancelar.type = "button";
+        btnCancelar.className = "btn-cancelar-mini";
+        btnCancelar.textContent = "✕";
+        btnCancelar.title = "Cancelar";
+
+        const confirmar = async () => {
+          const val = input.value.trim();
+          if (val) {
+            await enviarReaccion(m.id, val);
+          }
+          inputBox.remove();
+          btnAgregar.style.display = "";
+        };
+
+        btnOk.onclick = confirmar;
+        btnCancelar.onclick = () => {
+          inputBox.remove();
+          btnAgregar.style.display = "";
+        };
+        input.onkeydown = (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            confirmar();
+          } else if (e.key === "Escape") {
+            inputBox.remove();
+            btnAgregar.style.display = "";
+          }
+        };
+
+        inputBox.append(input, btnOk, btnCancelar);
+        reaccionesWrap.append(inputBox);
+        input.focus();
+      };
+
+      reaccionesWrap.append(btnAgregar);
+      contenido.append(autor, cuerpo, reaccionesWrap);
       li.append(inicial, contenido);
       lista.append(li);
     }
