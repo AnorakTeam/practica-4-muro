@@ -33,5 +33,5 @@ resource "google_service_account" "backend" {
 resource "google_project_iam_member" "backend_firestore" {
   project = var.proyecto
   role    = "roles/datastore.user"
-  member  = "serviceAccount:${<?  el correo de la cuenta>}"
+  member  = "serviceAccount:${google_service_account.backend.email}"
 }
