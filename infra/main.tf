@@ -36,16 +36,6 @@ resource "google_project_iam_member" "backend_firestore" {
   member  = "serviceAccount:${google_service_account.backend.email}"
 }
 
-data "google_project" "actual" {
-  project_id = var.proyecto
-}
-
-locals {
-  # La URL de Cloud Run v2 es determinista: https://<servicio>-<project_number>.<region>.run.app
-  # La obtendrá con el número de proyecto
-  url_frontend_esperada = "https://${var.prefijo}-frontend-${data.google_project.actual.number}.${var.region}.run.app"
-}
-
 resource "google_cloud_run_v2_service" "backend" {
   name                = "${var.prefijo}-backend"
   location            = var.region
@@ -64,8 +54,8 @@ resource "google_cloud_run_v2_service" "backend" {
         value = google_firestore_database.db.name
       }
       env {
-        name  = "ORIGEN_PERMITIDO"
-        value = local.url_frontend_esperada
+        name  = "PREFIJO_ORIGEN"
+        value = "${var.prefijo}-frontend"
       }
     }
     scaling {

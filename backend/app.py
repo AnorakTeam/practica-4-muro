@@ -8,19 +8,46 @@ db = firestore.Client(database=os.environ.get("BASE_DATOS", "(default)"))
 INSTANCIA = uuid.uuid4().hex[:6]
 
 
+ORIGEN_PERMITIDO = os.environ.get("ORIGEN_PERMITIDO", "")
+PREFIJO_ORIGEN = os.environ.get("PREFIJO_ORIGEN", "")
+
+
+def origen_valido(origen):
+    if not origen:
+        return False
+    if ORIGEN_PERMITIDO == "*":
+        return True
+    if ORIGEN_PERMITIDO and origen == ORIGEN_PERMITIDO:
+        return True
+    if PREFIJO_ORIGEN:
+        from urllib.parse import urlparse
+        host = urlparse(origen).netloc.lower()
+        if host.startswith(f"{PREFIJO_ORIGEN.lower()}-") and host.endswith(".run.app"):
+            return True
+    # Por defecto, si ninguna variable está configurada, permitir para desarrollo
+    if not ORIGEN_PERMITIDO and not PREFIJO_ORIGEN:
+        return True
+    return False
+
+
 @app.before_request
 def manejar_preflight():
     if request.method == "OPTIONS":
         res = Response()
-        res.headers["Access-Control-Allow-Origin"] = os.environ.get("ORIGEN_PERMITIDO", "*")
-        res.headers["Access-Control-Allow-Headers"] = "Content-Type"
-        res.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        return res
+        origen = request.headers.get("Origin", "")
+        if origen_valido(origen):
+            res.headers["Access-Control-Allow-Origin"] = origen
+            res.headers["Access-Control-Allow-Headers"] = "Content-Type"
+            res.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+            return res
+        return Response("CORS no autorizado", status=403)
 
 
 @app.after_request
 def permitir_navegador(respuesta):
-    respuesta.headers["Access-Control-Allow-Origin"] = os.environ.get("ORIGEN_PERMITIDO", "*")
+    origen = request.headers.get("Origin", "")
+    if origen_valido(origen):
+        respuesta.headers["Access-Control-Allow-Origin"] = origen
     respuesta.headers["Access-Control-Allow-Headers"] = "Content-Type"
     respuesta.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     return respuesta
